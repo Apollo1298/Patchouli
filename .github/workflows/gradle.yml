@@ -84,7 +84,7 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         GIT_REF: ${{ github.ref }}
         FABRIC_JAR: ${{ steps.calculate_artifact_names.outputs.fabric }}
-        FORGE_JAR: ${{ steps.calculate_artifact_names.outputs.neoforge }}
+        NEOFORGE_JAR: ${{ steps.calculate_artifact_names.outputs.neoforge }}
         CURSEFORGE_TOKEN: ${{ secrets.WILLIEWILLUS_CURSEFORGE_TOKEN }}
         MODRINTH_TOKEN: ${{ secrets.WILLIEWILLUS_MODRINTH_TOKEN }}
       run: |
