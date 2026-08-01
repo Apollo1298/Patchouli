@@ -1,16 +1,10 @@
 package vazkii.patchouli.client.handler;
 
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.datafixers.util.Pair;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.SubmitNodeStorage;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
@@ -20,6 +14,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Rotation;
@@ -27,20 +22,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-import org.joml.Matrix4fc;
-
 import vazkii.patchouli.api.IMultiblock;
 import vazkii.patchouli.client.base.ClientTicker;
 import vazkii.patchouli.client.base.PersistentData.Bookmark;
 import vazkii.patchouli.client.multiblock.GhostBlockGeometry;
 import vazkii.patchouli.common.multiblock.StateMatcher;
 import vazkii.patchouli.common.util.RotationUtil;
-import vazkii.patchouli.mixin.client.AccessorMultiBufferSource;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Objects;
-import java.util.SequencedMap;
 import java.util.function.Function;
 
 public final class MultiblockVisualizationHandler {
@@ -117,9 +107,9 @@ public final class MultiblockVisualizationHandler {
 		}
 	}
 
-	public void onWorldRenderLast(PoseStack ms, Matrix4fc pose) {
+	public void onWorldRenderLast(PoseStack ms, SubmitNodeCollector submitNodeCollector, Vec3 cameraPos) {
 		if (hasMultiblock && multiblock != null) {
-			renderMultiblock(Minecraft.getInstance().level, ms, pose);
+			renderMultiblock(Minecraft.getInstance().level, ms, submitNodeCollector, cameraPos);
 		}
 	}
 
@@ -150,9 +140,7 @@ public final class MultiblockVisualizationHandler {
 		}
 	}
 
-	public void renderMultiblock(Level world, PoseStack ms, Matrix4fc pose) {
-		ms.pushPose();
-		ms.mulPose(pose);
+	public void renderMultiblock(Level world, PoseStack ms, SubmitNodeCollector submitNodeCollector, Vec3 cameraPos) {
 		Minecraft mc = Minecraft.getInstance();
 		if (!isAnchored) {
 			facingRotation = getRotation(mc.player);
@@ -171,8 +159,7 @@ public final class MultiblockVisualizationHandler {
 		}
 
 		ms.pushPose();
-		Vec3 cameraPosition = mc.getEntityRenderDispatcher().camera.position();
-		ms.translate(cameraPosition.multiply(-1, -1, -1));
+		ms.translate(-cameraPos.x(), -cameraPos.y(), -cameraPos.z());
 
 		BlockPos checkPos = null;
 		if (mc.hitResult instanceof BlockHitResult blockRes) {
@@ -182,8 +169,6 @@ public final class MultiblockVisualizationHandler {
 		blocks = blocksDone = airFilled = 0;
 		lookingState = null;
 		lookingPos = checkPos;
-
-		SubmitNodeStorage submitNodeStorage = mc.gameRenderer.getFeatureRenderDispatcher().getSubmitNodeStorage();
 
 		Pair<BlockPos, Collection<IMultiblock.SimulateResult>> sim = multiblock.simulate(world, getStartPos(), getFacingRotation(), true);
 		for (IMultiblock.SimulateResult r : sim.getSecond()) {
@@ -203,10 +188,10 @@ public final class MultiblockVisualizationHandler {
 					BlockState renderState = r.getStateMatcher().getDisplayedState(ClientTicker.ticksInGame).rotate(facingRotation);
 					float scale = 1;
 					if (renderState.getBlock() == Blocks.AIR) {
-						renderState = Blocks.RED_CONCRETE.defaultBlockState();
+						renderState = Blocks.CONCRETE.pick(DyeColor.RED).defaultBlockState();
 						scale = 0.3F;
 					}
-					submitNodeStorage.submitCustomGeometry(
+					submitNodeCollector.submitCustomGeometry(
 							ms,
 							RenderTypes.translucentMovingBlock(),
 							new GhostBlockGeometry(r.getWorldPosition(), renderState, alpha, scale));
@@ -224,7 +209,6 @@ public final class MultiblockVisualizationHandler {
 			blocks = blocksDone = 0;
 		}
 
-		ms.popPose();
 		ms.popPose();
 	}
 
@@ -250,75 +234,4 @@ public final class MultiblockVisualizationHandler {
 	private Rotation getRotation(Entity entity) {
 		return RotationUtil.rotationFromFacing(entity.getDirection());
 	}
-
-	private MultiBufferSource.BufferSource initBuffers(MultiBufferSource.BufferSource original) {
-		ByteBufferBuilder fallback = ((AccessorMultiBufferSource) original).getFallbackBuffer();
-		SequencedMap<RenderType, ByteBufferBuilder> layerBuffers = ((AccessorMultiBufferSource) original).getFixedBuffers();
-		SequencedMap<RenderType, ByteBufferBuilder> remapped = new Object2ObjectLinkedOpenHashMap<>();
-		for (Map.Entry<RenderType, ByteBufferBuilder> e : layerBuffers.entrySet()) {
-			remapped.put(/*GhostRenderLayer.remap(*/e.getKey()/*)*/, e.getValue());
-		}
-		return new GhostBuffers(fallback, remapped);
-	}
-
-	private static class GhostBuffers extends MultiBufferSource.BufferSource {
-		protected GhostBuffers(ByteBufferBuilder fallback, SequencedMap<RenderType, ByteBufferBuilder> layerBuffers) {
-			super(fallback, layerBuffers);
-		}
-
-		@Override
-		public VertexConsumer getBuffer(RenderType type) {
-			return super.getBuffer(/*GhostRenderLayer.remap(*/type/*)*/);
-		}
-	}
-
-	/*private static class GhostRenderLayer extends RenderType {
-		private static final Map<RenderType, RenderType> remappedTypes = new IdentityHashMap<>();
-		private final RenderType original;
-	
-		private GhostRenderLayer(RenderType original) {
-			super(String.format("%s_%s_ghost", original.toString(), PatchouliAPI.MOD_ID), original.bufferSize(), original.affectsCrumbling(), original.sortOnUpload(), () -> {
-				original.setupRenderState();
-	
-				//RenderSystem.disableDepthTest();
-				//RenderSystem.enableBlend();
-				//RenderSystem.setShaderColor(1, 1, 1, 0.4F);
-			}, () -> {
-				//RenderSystem.setShaderColor(1, 1, 1, 1);
-				//RenderSystem.disableBlend();
-				//RenderSystem.enableDepthTest();
-	
-				original.clearRenderState();
-			});
-			this.original = original;
-		}
-	
-		@Override
-		public void draw(MeshData meshData) {
-			original.draw(meshData);
-		}
-	
-		@Override
-		public VertexFormat format() {
-			return original.format();
-		}
-	
-		@Override
-		public VertexFormat.Mode mode() {
-			return original.mode();
-		}
-	
-		@Override
-		public RenderPipeline pipeline() {
-			return original.pipeline();
-		}
-	
-		public static RenderType remap(RenderType in) {
-			if (in instanceof GhostRenderLayer) {
-				return in;
-			} else {
-				return remappedTypes.computeIfAbsent(in, GhostRenderLayer::new);
-			}
-		}
-	}*/
 }

@@ -1,6 +1,6 @@
 package vazkii.patchouli.common.advancement;
 
-import net.minecraft.advancements.CriterionTrigger;
+import net.minecraft.advancements.triggers.CriterionTrigger;
 import net.minecraft.resources.Identifier;
 
 import java.util.function.BiConsumer;

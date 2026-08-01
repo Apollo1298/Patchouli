@@ -36,7 +36,7 @@ public final class TooltipHandler {
 		int tooltipX = mouseX;
 		int tooltipY = mouseY - 4;
 
-		if (mc.player != null && !(mc.screen instanceof GuiBook)) {
+		if (mc.player != null && !(mc.gui.screen() instanceof GuiBook)) {
 			int lexSlot = -1;
 			ItemStack lexiconStack = ItemStack.EMPTY;
 			Pair<BookEntry, Integer> lexiconEntry = null;

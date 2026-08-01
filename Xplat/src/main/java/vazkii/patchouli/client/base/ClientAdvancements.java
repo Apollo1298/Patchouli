@@ -59,7 +59,7 @@ public class ClientAdvancements {
 	}
 
 	public static void sendBookToast(Book book) {
-		ToastManager gui = Minecraft.getInstance().getToastManager();
+		ToastManager gui = Minecraft.getInstance().gui.toastManager();
 		if (gui.getToast(LexiconToast.class, book) == null) {
 			gui.addToast(new LexiconToast(book));
 		}

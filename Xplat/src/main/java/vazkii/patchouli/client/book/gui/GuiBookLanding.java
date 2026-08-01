@@ -227,7 +227,7 @@ public class GuiBookLanding extends GuiBook {
 		if (minecraft.player == null) {
 			return;
 		}
-		minecraft.setScreen(new GuiAdvancementsExt(minecraft.player.connection.getAdvancements(), this, book.advancementsTab));
+		minecraft.gui.setScreen(new GuiAdvancementsExt(minecraft.player.connection.getAdvancements(), this, book.advancementsTab));
 	}
 
 	private void handleButtonEdit(Button button) {

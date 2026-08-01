@@ -27,7 +27,7 @@ public final class BookOverlayHud {
 		Minecraft mc = Minecraft.getInstance();
 		Player player = mc.player;
 		ItemStack bookStack = player.getMainHandItem();
-		if (mc.screen == null) {
+		if (mc.gui.screen() == null) {
 			Book book = ItemStackUtil.getBookFromStack(bookStack);
 
 			if (book != null) {

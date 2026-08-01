@@ -51,9 +51,12 @@ public class FabricClientInitializer implements ClientModInitializer {
 		ClientRecipeSynchronizedEvent.EVENT.register((minecraft, synchronizedRecipes) -> {
 			ClientRecipes.INSTANCE.receivedRecipes(synchronizedRecipes.recipes());
 		});
-		LevelRenderEvents.END_MAIN.register(context -> {
-			MultiblockVisualizationHandler.INSTANCE.onWorldRenderLast(context.poseStack(), context.levelState().cameraRenderState.viewRotationMatrix);
+		LevelRenderEvents.COLLECT_SUBMITS.register(context -> {
+			MultiblockVisualizationHandler.INSTANCE.onWorldRenderLast(
+					context.poseStack(),
+					context.submitNodeCollector(),
+					context.levelState().cameraRenderState.pos);
 		});
-		PictureInPictureRendererRegistry.register(ctx -> new MultiblockPiPRenderer(ctx.bufferSource()));
+		PictureInPictureRendererRegistry.register(ctx -> new MultiblockPiPRenderer());
 	}
 }

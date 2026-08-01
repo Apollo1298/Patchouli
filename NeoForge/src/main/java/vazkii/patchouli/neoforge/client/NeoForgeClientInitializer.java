@@ -57,8 +57,11 @@ public class NeoForgeClientInitializer {
 		NeoForge.EVENT_BUS.addListener((RecipesReceivedEvent e) -> {
 			ClientRecipes.INSTANCE.receivedRecipes(e.getRecipeMap().values());
 		});
-		NeoForge.EVENT_BUS.addListener((RenderLevelStageEvent.AfterTranslucentParticles e) -> {
-			MultiblockVisualizationHandler.INSTANCE.onWorldRenderLast(e.getPoseStack(), e.getModelViewMatrix());
+		NeoForge.EVENT_BUS.addListener((SubmitCustomGeometryEvent e) -> {
+			MultiblockVisualizationHandler.INSTANCE.onWorldRenderLast(
+					e.getPoseStack(),
+					e.getSubmitNodeCollector(),
+					e.getLevelRenderState().cameraRenderState.pos);
 		});
 		modBus.addListener((FMLClientSetupEvent e) -> {
 			ClientBookRegistry.INSTANCE.init();

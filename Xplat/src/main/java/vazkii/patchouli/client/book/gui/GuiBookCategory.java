@@ -116,7 +116,7 @@ public class GuiBookCategory extends GuiBookEntryList {
 
 	@Override
 	public boolean canBeOpened() {
-		return !category.isLocked() && !equals(Minecraft.getInstance().screen);
+		return !category.isLocked() && !equals(Minecraft.getInstance().gui.screen());
 	}
 
 }

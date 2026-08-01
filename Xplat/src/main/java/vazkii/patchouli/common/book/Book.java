@@ -3,7 +3,6 @@ package vazkii.patchouli.common.book;
 import com.google.common.base.Suppliers;
 import com.google.gson.JsonObject;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.registries.VanillaRegistries;
@@ -246,7 +245,7 @@ public class Book {
 		if (useBlockyFont) {
 			return Style.EMPTY;
 		} else {
-			return Style.EMPTY.withFont(new FontDescription.Resource(Minecraft.UNIFORM_FONT));
+			return Style.EMPTY.withFont(new FontDescription.Resource(Identifier.withDefaultNamespace("uniform")));
 		}
 	}
 
