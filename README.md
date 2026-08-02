@@ -1,4 +1,9 @@
 # Patchouli
+
+Apollo1298 fork for Minecraft 26.2 soft-compat with Apotheosis-Fabric.
+Upstream: https://github.com/VazkiiMods/Patchouli — license unchanged (see LICENSE, CC-BY-NC-SA).
+26.2 work used Cursor agent assistance.
+
 Accessible, Data-Driven, Dependency-Free Documentation for Minecraft Modders and Pack Makers
 
 For more information, see the [docs](https://vazkiimods.github.io/Patchouli/docs/intro).
