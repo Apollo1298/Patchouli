@@ -18,9 +18,17 @@ import org.apache.commons.lang3.tuple.Pair;
 import vazkii.patchouli.api.PatchouliAPI;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 public final class EntityUtil {
+
+	/**
+	 * Client {@link Level#getNextEntityId()} always returns 0, but {@link Entity#getId()}
+	 * rejects that value. Assign descending negative IDs so book previews stay unique and
+	 * do not collide with server-assigned positive IDs.
+	 */
+	private static final AtomicInteger CLIENT_ENTITY_IDS = new AtomicInteger(-1);
 
 	private EntityUtil() {}
 
@@ -68,6 +76,10 @@ public final class EntityUtil {
 
 			if (useNbt != null) {
 				entity.load(TagValueInput.create(problemReporter, world.registryAccess(), useNbt));
+			}
+
+			if (world.isClientSide()) {
+				entity.setId(CLIENT_ENTITY_IDS.getAndDecrement());
 			}
 
 			String report = problemReporter.getTreeReport();

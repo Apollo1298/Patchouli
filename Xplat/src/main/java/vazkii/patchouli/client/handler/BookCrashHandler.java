@@ -21,7 +21,7 @@ public class BookCrashHandler implements CrashReportDetail<String> {
 
 	public static void appendToCrashReport(SystemReport report) {
 		var mc = Minecraft.getInstance();
-		if (mc == null || !(mc.gui.screen() instanceof GuiBook)) {
+		if (mc == null || mc.gui == null || !(mc.gui.screen() instanceof GuiBook)) {
 			return;
 		}
 		try {
